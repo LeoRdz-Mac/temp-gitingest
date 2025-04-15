@@ -1,0 +1,4 @@
+- name: Show restart message
+  ansible.builtin.command:
+    cmd: "/opt/onboarding/lib/restart-hint.sh {{ 'true' if docker_group_changed else 'false' }}"
+  changed_when: false

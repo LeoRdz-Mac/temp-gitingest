@@ -1,0 +1,79 @@
+---
+- name: Validate environment
+  ansible.builtin.assert:
+    that:
+      - not ansible_check_mode
+      - ansible_user_id != "root"
+    fail_msg: "Do not run as root user and avoid check mode"
+  when: ansible_user_id is defined
+
+- name: Ensure onboarding directory exists
+  ansible.builtin.file:
+    path: /opt/onboarding
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+  become: yes
+
+- name: Set bootstrap script permissions
+  ansible.builtin.file:
+    path: "/opt/onboarding/scripts/{{ item }}"
+    mode: '0755'
+    owner: root
+    group: root
+  loop:
+    - bootstrap-root.sh
+    - bootstrap-user.sh
+  become: yes
+  ignore_errors: yes
+
+- name: Secure log directory
+  ansible.builtin.file:
+    path: /opt/onboarding/logs
+    state: directory
+    mode: '0775'
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_gid }}"
+  become: yes
+
+- name: Fix Ansible project permissions
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    mode: "{{ item.mode }}"
+    recurse: "{{ item.recurse | default(false) }}"
+  loop:
+    - { path: "{{ playbook_dir }}", mode: '0755', recurse: yes }
+    - { path: "{{ playbook_dir }}/ansible.cfg", mode: '0600' }
+    - { path: "{{ playbook_dir }}/inventory", mode: '0600' }
+    - { path: "{{ playbook_dir }}/group_vars", mode: '0750' }
+
+- name: Secure user dotfiles
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.{{ item }}"
+    state: directory
+    mode: '0700'
+  loop:
+    - ssh
+    - gnupg
+    - local/share/chezmoi
+
+- name: Set SSH key permissions
+  ansible.builtin.file:
+    path: "{{ item }}"
+    mode: '0600'
+  loop: "{{ lookup('fileglob', ansible_env.HOME + '/.ssh/id_*', wantlist=True) }}"
+  when: 
+    - ssh_key_files.stat.exists  # Only if files exist
+  ignore_errors: no
+  tags: always
+
+- name: Check for SSH key files
+  ansible.builtin.stat:
+    path: "{{ ansible_env.HOME }}/.ssh/"
+  register: ssh_key_files
+  changed_when: false
+
+- name: Notify completion
+  ansible.builtin.debug:
+    msg: "Permission fixes applied. Verify with: ls -la /opt/onboarding && ls -la ~/.ssh"

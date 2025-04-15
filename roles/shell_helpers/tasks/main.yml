@@ -1,0 +1,26 @@
+---
+- name: Install keychain for SSH agent persistence
+  apt:
+    name: keychain
+    state: present
+
+- name: Configure shell environment helpers
+  block:
+    - name: Add keychain initialization to zshrc
+      ansible.builtin.lineinfile:
+        path: "{{ ansible_env.HOME }}/.zshrc"
+        line: 'eval $(keychain --eval --agents ssh -Q --quiet ~/.ssh/id_* 2>/dev/null)'
+        insertafter: EOF
+
+    - name: Install Starship prompt
+      ansible.builtin.command:
+        cmd: sh -c "$(curl -fsSL https://starship.rs/install.sh) -y"
+        creates: "{{ ansible_env.HOME }}/.local/bin/starship"
+
+    - name: Configure direnv integration
+      ansible.builtin.lineinfile:
+        path: "{{ ansible_env.HOME }}/.zshrc"
+        line: 'eval "$(direnv hook zsh)"'
+        insertafter: 'source $ZSH/oh-my-zsh.sh'
+
+  notify: Show restart message

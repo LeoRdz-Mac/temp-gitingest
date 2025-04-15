@@ -1,0 +1,13 @@
+[data]
+  name = "{{ ansible_user_id }}"
+  email = "{{ github_accounts[0].email }}"
+  dotfilesRepo = "{{ dotfiles_repo_url }}"
+  sshKey = "{{ github_accounts[0].ssh_key }}"
+
+[git]
+  autoCommit = true
+  autoPush = true
+  autoAdd = true
+
+[ssh]
+  command = "ssh -i {{ github_accounts[0].ssh_key }} -o IdentitiesOnly=yes"

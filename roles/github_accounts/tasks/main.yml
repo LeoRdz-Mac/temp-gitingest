@@ -1,0 +1,43 @@
+---
+- name: Create SSH directory
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.ssh"
+    state: directory
+    mode: '0700'
+
+- name: Generate SSH keys for each account
+  ansible.builtin.openssh_keypair:
+    path: "{{ item.ssh_key }}"
+    type: ed25519
+    force: false
+  loop: "{{ github_accounts }}"
+  register: ssh_keys
+
+- name: Generate GPG keys for each account
+  ansible.builtin.command:
+    cmd: |
+      gpg --batch --generate-key <<EOF
+      Key-Type: ED25519
+      Key-Usage: sign
+      Subkey-Type: ECDH
+      Subkey-Usage: encrypt
+      Name-Real: {{ item.gpg_key_name }}
+      Name-Email: {{ item.email }}
+      Expire-Date: 0
+      %no-protection
+      EOF
+    chdir: "{{ ansible_env.HOME }}"
+  loop: "{{ github_accounts }}"
+  register: gpg_keys
+  changed_when: "'already in keyring' not in gpg_keys.stdout"
+
+- name: Configure SSH for multiple accounts
+  ansible.builtin.template:
+    src: ssh_config.j2
+    dest: "{{ ansible_env.HOME }}/.ssh/config"
+    mode: '0600'
+
+- name: Configure Git identities
+  ansible.builtin.template:
+    src: gitconfig.j2
+    dest: "{{ ansible_env.HOME }}/.gitconfig"

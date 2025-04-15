@@ -1,0 +1,18 @@
+---
+- name: Create version lock directory
+  ansible.builtin.file:
+    path: /opt/onboarding/logs
+    state: directory
+    mode: '0755'
+
+- name: Generate mise version lockfile
+  ansible.builtin.command:
+    cmd: mise list --json > /opt/onboarding/logs/tool-versions.lock.json
+    environment:
+      PATH: "{{ ansible_env.PATH }}:{{ ansible_env.HOME }}/.local/bin"
+  changed_when: false
+
+- name: Record system package versions
+  ansible.builtin.command:
+    cmd: dpkg-query -W > /opt/onboarding/logs/debian-packages.lock
+  changed_when: false

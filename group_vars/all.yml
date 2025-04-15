@@ -1,0 +1,42 @@
+# Core components
+zsh_default_shell: true
+oh_my_zsh_plugins:
+  - git
+  - zsh-syntax-highlighting
+  - zsh-autosuggestions
+  - direnv
+  - aws
+  - terraform
+
+# GitHub configuration
+github_accounts:
+  - name: "default"
+    email: "developer@company.com"
+    github_user: "company-dev"
+    ssh_key: "~/.ssh/id_ed25519_company"
+    gpg_key_name: "Company Development Key"
+
+# Dev tools versions
+tool_versions:
+  awscli: "2.15.x"
+  gcloud: "468.0.1"
+  terraform: "1.8.2"
+
+# Package sources
+package_manager: "mise"
+
+# Dotfiles configuration
+dotfiles_repo_url: "git@github.com:LeoRdz-Mac/dotfiles-wsl.git"
+dotfiles_ssh_key: "{{ github_accounts[0].ssh_key }}"
+
+# Security settings
+ssh_key_type: ed25519
+gpg_key_type: ED25519
+
+# Shell configuration
+zsh_theme: "agnoster"
+starship_config_path: "{{ ansible_env.HOME }}/.config/starship.toml"
+
+# Development environment
+python_version: "3.11"
+preferred_package_manager: "mise"

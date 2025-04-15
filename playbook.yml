@@ -1,0 +1,24 @@
+---
+- name: Configure developer environment
+  hosts: localhost
+  connection: local
+  become: false
+  gather_facts: true
+
+  roles:
+    - role: permissions
+      tags: [always, permissions]
+    - role: zsh
+      tags: [core, zsh]
+    - role: github_accounts
+      tags: [security, github]
+    - role: chezmoi
+      tags: [core, dotfiles]
+    - role: cli_tools
+      tags: [tools, cloud]
+    - role: dev_packages
+      tags: [tools, dev]
+    - role: shell_helpers
+      tags: [core, shell]
+    - role: version_pinning
+      tags: [meta]

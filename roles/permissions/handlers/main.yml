@@ -1,0 +1,4 @@
+---
+- name: restart shell
+  ansible.builtin.command: /opt/onboarding/lib/restart-hint.sh false
+  changed_when: false

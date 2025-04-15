@@ -1,0 +1,12 @@
+---
+# Critical paths to protect
+protected_paths:
+  - /opt/onboarding
+  - "{{ ansible_env.HOME }}/.ssh"
+  - "{{ ansible_env.HOME }}/.gnupg"
+  - "{{ playbook_dir }}"
+
+# Permission modes
+dir_mode: '0755'
+file_mode: '0644'
+sensitive_file_mode: '0600'

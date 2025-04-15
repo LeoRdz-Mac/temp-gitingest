@@ -1,0 +1,34 @@
+---
+- name: Install mise (version manager)
+  ansible.builtin.shell: |
+    curl -fsSL https://mise.run | bash
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
+  args:
+    creates: "{{ ansible_env.HOME }}/.local/bin/mise"
+  changed_when: false
+
+- name: Install Chezmoi using mise
+  ansible.builtin.shell: |
+    mise install chezmoi
+  environment:
+    PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
+  args:
+    creates: "{{ ansible_env.HOME }}/.local/bin/chezmoi"
+
+- name: Initialize Chezmoi repository
+  ansible.builtin.command:
+    cmd: chezmoi init --apply https://github.com/LeoRdz-Mac/dotfiles-wsl.git
+    creates: "{{ ansible_env.HOME }}/.local/share/chezmoi"
+  environment:
+    GIT_SSH_COMMAND: "ssh -i {{ github_accounts[0].ssh_key }}"
+
+- name: Install Starship prompt
+  ansible.builtin.command:
+    cmd: sh -c "$(curl -fsSL https://starship.rs/install.sh)"
+    args:
+      creates: /usr/local/bin/starship
+
+- name: Configure direnv
+  ansible.builtin.apt:
+    name: direnv
+    state: present

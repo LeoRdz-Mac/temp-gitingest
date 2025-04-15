@@ -1,0 +1,30 @@
+# Managed by Ansible - DO NOT EDIT MANUALLY
+# Last generated: {{ ansible_date_time.iso8601 }}
+
+# Global defaults
+Host *
+  AddKeysToAgent yes
+  IdentitiesOnly yes                  {# CRITICAL for multi-account security #}
+  ForwardAgent no                     {# Disable unless explicitly needed #}
+  ServerAliveInterval 60              {# Keep connections alive in WSL2 #}
+  TCPKeepAlive yes
+  ControlMaster auto                  {# SSH connection multiplexing #}
+  ControlPath ~/.ssh/control-%r@%h:%p
+  ControlPersist 1h
+
+{# Per-account configurations #}
+{% for account in github_accounts %}
+Host github.com-{{ account.name }}
+  HostName github.com
+  IdentityFile {{ account.ssh_key | expanduser }}
+  User git
+  IdentitiesOnly yes
+  PreferredAuthentications publickey
+{% if account.port is defined %}  Port {{ account.port }}{% endif %}
+
+{% endfor %}
+
+{# Special configuration for VS Code Dev Containers #}
+Host devcontainer-*
+  StrictHostKeyChecking no
+  UserKnownHostsFile /dev/null

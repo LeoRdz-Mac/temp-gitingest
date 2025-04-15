@@ -1,0 +1,40 @@
+---
+- name: Install AWS CLI
+  community.general.pipx:
+    name: awscli
+    state: present
+    version: "{{ tool_versions.awscli }}"
+
+- name: Install Google Cloud SDK
+  ansible.builtin.command: |
+    curl -sSL https://sdk.cloud.google.com | bash -s -- --disable-prompts
+    source ~/.bashrc
+  args:
+    creates: "{{ ansible_env.HOME }}/google-cloud-sdk/bin/gcloud"
+  environment:
+    CLOUDSDK_CORE_DISABLE_PROMPTS: "1"
+
+- name: Install Terraform
+  block:
+    - name: Create bin directory
+      ansible.builtin.file:
+        path: "{{ ansible_env.HOME }}/.local/bin"
+        state: directory
+        mode: '0755'
+
+    - name: Download Terraform
+      ansible.builtin.get_url:
+        url: "https://releases.hashicorp.com/terraform/{{ terraform_version }}/terraform_{{ terraform_version }}_linux_amd64.zip"
+        dest: "/tmp/terraform.zip"
+
+    - name: Unzip Terraform
+      ansible.builtin.unarchive:
+        src: "/tmp/terraform.zip"
+        dest: "{{ ansible_env.HOME }}/.local/bin"
+        mode: '0755'
+        remote_src: yes
+
+    - name: Cleanup temp file
+      ansible.builtin.file:
+        path: "/tmp/terraform.zip"
+        state: absent

@@ -1,0 +1,26 @@
+---
+- name: Install system packages
+  apt:
+    name:
+      - ripgrep
+      - fzf
+      - tldr
+      - htop
+      - btop
+      - fd-find
+      - bat
+    state: present
+    update_cache: yes
+
+- name: Install Python-based tools
+  community.general.pipx:
+    name:
+      - pre-commit
+      - checkov
+      - cruft
+      - yamllint
+      - terraform-docs
+      - tflint
+      - dotenv-linter
+      - hadolint
+    state: present
